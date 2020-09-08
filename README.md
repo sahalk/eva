@@ -93,3 +93,37 @@ The following accuracies were acheived on the test set:
     1. The model has achieved accuracies greater than 99.4% consistently towards the end.
     2. Less than 10k parameters were used for this model.
     3. The model is not over-fitting (Train and Test accuracies are close to each other).
+    
+## EVA 5 - Session 6
+
+The following versions of the models were trained on the dataset:
+
+1. With L1 + BN:
+
+    The model was trained with a L1 lambda value of 0.01 initially. The accuracies acheived in both, test and train, were around 60-70%. On updating the lambda value to a very small value, the accuracies had reached around 98%. 
+    
+    Conclusion: This model does not perform well.
+
+2. With L2 + BN:
+
+    The model was trained with L2 lambda value of 0.01. This model achieved better results as compared to the previous model with the same lambda value. Howevery, the test accuracy did not cross more than 98.8%.
+    
+    Conclusion: This model does not perform well. 
+    
+3. With L1 and L2 with BN:
+
+    The model was trained with an L1 lambda value of 0.001 and an L2 lambda value of 0.01. The test accuracies had dropped down to an average 96% (approximately).
+    
+    Conclusion: This model does not not perform well. Model 1 and Model 2 had produced better results.
+    
+4. With GBN:
+
+    For this model, the batch size was increased to 256 rather than 64. This model had achieved a test accuracy upto 99.39%.
+    
+    Conclusion: This model had produced the best test accuracy so far.
+    
+5. With L1 and L2 with GBN:
+
+    This was the final model in the iteration. The model was trained with an L1 lambda value of 0.001 and an L2 lambda value of 0.01. This model had produced an average accuracy of more than 98% in the test dataset.
+    
+    Conclusion: This model had more stable results as compared to Model 3 (L1 + L2 + BN). However, Model 4 (GBN) had produced better results. Hence, we can say that this model does not perform well.
