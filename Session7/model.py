@@ -162,33 +162,34 @@ class Loader(object):
   def print_sum(self):
     summary(self.model, input_size=(3, 32, 32))
 
-  def train(self, epoch, learning_rate=0.01, momentum=0.9):
+  def train(self, limit, learning_rate=0.01, momentum=0.9):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(self.model.parameters(), lr=learning_rate, momentum=momentum)
 
-    running_loss = 0.0
-    for i, data in enumerate(self.trainloader, 0):
-        # get the inputs
-        inputs, labels = data
-        inputs, labels = inputs.to(self.device), labels.to(self.device)
+    for epoch in range(limit):
+        running_loss = 0.0
+        for i, data in enumerate(self.trainloader, 0):
+            # get the inputs
+            inputs, labels = data
+            inputs, labels = inputs.to(self.device), labels.to(self.device)
 
-        # zero the parameter gradients
-        optimizer.zero_grad()
+            # zero the parameter gradients
+            optimizer.zero_grad()
 
-        # forward + backward + optimize
-        self.outputs = self.model(inputs)
-        loss = criterion(self.outputs, labels)
-        loss.backward()
-        optimizer.step()
+            # forward + backward + optimize
+            self.outputs = self.model(inputs)
+            loss = criterion(self.outputs, labels)
+            loss.backward()
+            optimizer.step()
 
-        # print statistics
-        running_loss += loss.item()
-        if i % 2000 == 1999:    # print every 2000 mini-batches
-            print('[%d, %5d] loss: %.3f' %
-                  (epoch + 1, i + 1, running_loss / 2000))
-            running_loss = 0.0
+            # print statistics
+            running_loss += loss.item()
+            if i % 2000 == 1999:    # print every 2000 mini-batches
+                print('[%d, %5d] loss: %.3f' %
+                    (epoch + 1, i + 1, running_loss / 2000))
+                running_loss = 0.0
 
-    print('Finished Training')
+        print('Finished Training')
 
   def test(self):
     correct = 0
