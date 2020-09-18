@@ -189,7 +189,7 @@ class Loader(object):
                     (epoch + 1, i + 1, running_loss / 2000))
                 running_loss = 0.0
 
-        print('Finished Training')
+    print('Finished Training')
 
   def test(self):
     correct = 0
