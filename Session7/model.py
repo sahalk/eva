@@ -9,14 +9,17 @@ Original file is located at
 
 import torch
 import torch.nn as nn
+import torch.optim as optim
 import torch.nn.functional as F
 import torchvision
 import torchvision.transforms as transforms
 
+from torchsummary import summary
+
 import matplotlib.pyplot as plt
 import numpy as np
 
-class Net():
+class Net(nn.Module):
   def __init__(self):
     super(Net, self).__init__()
 
@@ -34,16 +37,16 @@ class Net():
 
     # Convolution Block 2
     self.convblock2 = nn.Sequential(
-        nn.Conv2d(in_channels=64, out_channels=128, kernel_size=(3, 3), padding = (1,1), bias=False),
+        nn.Conv2d(in_channels=64, out_channels=128, kernel_size=(1, 1), padding = (1,1), bias=False),
         nn.ReLU(),
         nn.BatchNorm2d(128)
     )
 
     # Convolution Block 3
     self.convblock3 = nn.Sequential(
-        nn.Conv2d(in_channels=128, out_channels=256, kernel_size=(3, 3), padding = (2,2), bias=False, dilation=(2,2)),
+        nn.Conv2d(in_channels=128, out_channels=128, kernel_size=(3, 3), padding = (2,2), bias=False, dilation=(2,2)),
         nn.ReLU(),
-        nn.BatchNorm2d(256)
+        nn.BatchNorm2d(128)
     )
 
     # Max Pooling 2
@@ -53,16 +56,17 @@ class Net():
 
     # Convolution Block 4
     self.convblock4 = nn.Sequential(
-        nn.Conv2d(in_channels=256, out_channels=512, kernel_size=(1, 1), padding=(1,1), bias=False),
+        nn.Conv2d(in_channels=128, out_channels=256, kernel_size=(1, 1), padding=(1,1), bias=False),
         nn.ReLU(),
-        nn.BatchNorm2d(512)
+        nn.BatchNorm2d(256)
     )
 
     # Convolution Block 5
     self.convblock5 = nn.Sequential(
-        nn.Conv2d(in_channels=512, out_channels=512, kernel_size=(3, 3), padding=(1,1), groups=512, bias=False),
+        nn.Conv2d(in_channels=256, out_channels=256, kernel_size=(3, 3), padding=(1,1), groups=256, bias=False),
+        nn.Conv2d(in_channels=256, out_channels=256, kernel_size=(1, 1), bias=False),
         nn.ReLU(),
-        nn.BatchNorm2d(512)
+        nn.BatchNorm2d(256)
     )
 
     # Max Pooling 3
@@ -72,38 +76,29 @@ class Net():
 
     # Convolution Block 6
     self.convblock6 = nn.Sequential(
-        nn.Conv2d(in_channels=512, out_channels=256, kernel_size=(1, 1), padding=0, bias=False),
+        nn.Conv2d(in_channels=256, out_channels=256, kernel_size=(1, 1), padding=(1,1), bias=False),
         nn.ReLU(),
         nn.BatchNorm2d(256)
     )
 
-    # GAP Layer
+    self.convblock7 = nn.Sequential(
+        nn.Conv2d(in_channels=256, out_channels=256, kernel_size=(3, 3), padding=(1, 1), groups=256, bias=False),
+        nn.Conv2d(in_channels=256, out_channels=256, kernel_size=(1, 1), bias=False),
+        nn.ReLU(),
+        nn.BatchNorm2d(256),
+    )
+
+    self.convblock8 = nn.Sequential(
+        nn.Conv2d(in_channels=256, out_channels=256, kernel_size=(1, 1), padding=(0, 0), bias=False),
+        nn.ReLU(),
+        nn.BatchNorm2d(256)
+    )
     self.gap = nn.Sequential(
         nn.AvgPool2d(kernel_size=5)
     )
-
-    # Convolution Block 7
-    self.convblock7 = nn.Sequential(
-        nn.Conv2d(in_channels=256, out_channels=10, kernel_size=(1, 1), padding=0, bias=False),
+    self.convblock9 = nn.Sequential(
+        nn.Conv2d(in_channels=256, out_channels=10, kernel_size=(1, 1), padding=(0, 0), bias=False),
     )
-
-  def transform(self, mean_values, std_values):
-    transform = transforms.Compose(
-    [transforms.ToTensor(),
-     transforms.Normalize(mean, ([0.2470, 0.2435, 0.2616]))])
-
-    trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
-                                            download=True, transform=transform)
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=4,
-                                              shuffle=True, num_workers=2)
-
-    testset = torchvision.datasets.CIFAR10(root='./data', train=False,
-                                          download=True, transform=transform)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=4,
-                                            shuffle=False, num_workers=2)
-
-    classes = ('plane', 'car', 'bird', 'cat',
-              'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
     
   def forward(self, x):
       x = self.convblock1(x)
@@ -115,13 +110,40 @@ class Net():
       x = self.convblock5(x)
       x = self.pool3(x)
       x = self.convblock6(x)
-      x = self.gap(x)
       x = self.convblock7(x)
+      x = self.convblock8(x)
+      x = self.gap(x)
+      x = self.convblock9(x)
 
       x = x.view(-1, 10)
       return F.log_softmax(x, dim=-1)
 
-  def disp_image(self, train_data):
+class Loader(object):
+  def __init__(self, data_mean, data_std_dev):
+    super(Loader, self).__init__()
+    self.cuda = torch.cuda.is_available()
+    self.device = torch.device("cuda" if self.cuda else "cpu")
+
+    self.model = Net().to(self.device)
+
+    transform = transforms.Compose(
+    [transforms.ToTensor(),
+     transforms.Normalize(data_mean, data_std_dev)])
+
+    trainset = torchvision.datasets.CIFAR10(root='./data', train=True,
+                                            download=True, transform=transform)
+    self.trainloader = torch.utils.data.DataLoader(trainset, batch_size=4,
+                                              shuffle=True, num_workers=2)
+
+    testset = torchvision.datasets.CIFAR10(root='./data', train=False,
+                                          download=True, transform=transform)
+    self.testloader = torch.utils.data.DataLoader(testset, batch_size=4,
+                                            shuffle=False, num_workers=2)
+
+    self.classes = ('plane', 'car', 'bird', 'cat',
+              'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
+
+  def disp_image(self, trainloader):
     def imshow(img):
       img = img / 2 + 0.5     # unnormalize
       npimg = img.numpy()
@@ -129,27 +151,33 @@ class Net():
 
 
     # get some random training images
-    dataiter = iter(trainloader)
+    dataiter = iter(self.trainloader)
     images, labels = dataiter.next()
 
     # show images
     imshow(torchvision.utils.make_grid(images))
     # print labels
-    print(' '.join('%5s' % classes[labels[j]] for j in range(4)))
+    print(' '.join('%5s' % self.classes[labels[j]] for j in range(4)))
 
-  def train(self, epoch, trainloader):
+  def print_sum(self):
+    summary(self.model, input_size=(3, 32, 32))
+
+  def train(self, epoch, learning_rate=0.01, momentum=0.9):
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.SGD(self.model.parameters(), lr=learning_rate, momentum=momentum)
+
     running_loss = 0.0
-    for i, data in enumerate(trainloader, 0):
+    for i, data in enumerate(self.trainloader, 0):
         # get the inputs
         inputs, labels = data
-        inputs, labels = inputs.to(device), labels.to(device)
+        inputs, labels = inputs.to(self.device), labels.to(self.device)
 
         # zero the parameter gradients
         optimizer.zero_grad()
 
         # forward + backward + optimize
-        outputs = model(inputs)
-        loss = criterion(outputs, labels)
+        self.outputs = model(inputs)
+        loss = criterion(self.outputs, labels)
         loss.backward()
         optimizer.step()
 
@@ -162,14 +190,14 @@ class Net():
 
     print('Finished Training')
 
-  def test(self, testloader):
+  def test(self):
     correct = 0
     total = 0
     with torch.no_grad():
-        for data in testloader:
+        for data in self.testloader:
             images, labels = data
-            images, labels = images.to(device), labels.to(device)
-            outputs = model(images)
+            images, labels = images.to(self.device), labels.to(self.device)
+            outputs = self.model(images)
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
@@ -177,15 +205,15 @@ class Net():
     print('Accuracy of the network on the 10000 test images: %d %%' % (
         100 * correct / total))
     
-  def class_accuracy(self, testloader):
+  def class_accuracy(self):
     class_correct = list(0. for i in range(10))
     class_total = list(0. for i in range(10))
     with torch.no_grad():
-        for data in testloader:
+        for data in self.testloader:
             images, labels = data
-            images, labels = images.to(device), labels.to(device)
+            images, labels = images.to(self.device), labels.to(self.device)
 
-            outputs = model(images)
+            outputs = self.model(images)
             _, predicted = torch.max(outputs, 1)
             c = (predicted == labels).squeeze()
             for i in range(4):
@@ -196,4 +224,4 @@ class Net():
 
     for i in range(10):
         print('Accuracy of %5s : %2d %%' % (
-            classes[i], 100 * class_correct[i] / class_total[i]))
+            self.classes[i], 100 * class_correct[i] / class_total[i]))
