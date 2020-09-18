@@ -37,7 +37,7 @@ class Net(nn.Module):
 
     # Convolution Block 2
     self.convblock2 = nn.Sequential(
-        nn.Conv2d(in_channels=64, out_channels=128, kernel_size=(1, 1), padding = (1,1), bias=False),
+        nn.Conv2d(in_channels=64    , out_channels=128, kernel_size=(1, 1), padding = (1,1), bias=False),
         nn.ReLU(),
         nn.BatchNorm2d(128)
     )
@@ -176,7 +176,7 @@ class Loader(object):
         optimizer.zero_grad()
 
         # forward + backward + optimize
-        self.outputs = model(inputs)
+        self.outputs = self.model(inputs)
         loss = criterion(self.outputs, labels)
         loss.backward()
         optimizer.step()
