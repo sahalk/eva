@@ -16,6 +16,7 @@ import torchvision.transforms as transforms
 
 from torchsummary import summary
 
+from tqdm import tqdm
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -37,16 +38,16 @@ class Net(nn.Module):
 
     # Convolution Block 2
     self.convblock2 = nn.Sequential(
-        nn.Conv2d(in_channels=64    , out_channels=128, kernel_size=(1, 1), padding = (1,1), bias=False),
+        nn.Conv2d(in_channels=64, out_channels=128, kernel_size=(1, 1), padding = (1,1), bias=False),
         nn.ReLU(),
         nn.BatchNorm2d(128)
     )
 
     # Convolution Block 3
     self.convblock3 = nn.Sequential(
-        nn.Conv2d(in_channels=128, out_channels=128, kernel_size=(3, 3), padding = (2,2), bias=False, dilation=(2,2)),
+        nn.Conv2d(in_channels=128, out_channels=256, kernel_size=(3, 3), padding = (2,2), bias=False, dilation=(2,2)),
         nn.ReLU(),
-        nn.BatchNorm2d(128)
+        nn.BatchNorm2d(256)
     )
 
     # Max Pooling 2
@@ -56,7 +57,7 @@ class Net(nn.Module):
 
     # Convolution Block 4
     self.convblock4 = nn.Sequential(
-        nn.Conv2d(in_channels=128, out_channels=256, kernel_size=(1, 1), padding=(1,1), bias=False),
+        nn.Conv2d(in_channels=256, out_channels=256, kernel_size=(1, 1), padding=(1,1), bias=False),
         nn.ReLU(),
         nn.BatchNorm2d(256)
     )
@@ -89,15 +90,15 @@ class Net(nn.Module):
     )
 
     self.convblock8 = nn.Sequential(
-        nn.Conv2d(in_channels=256, out_channels=256, kernel_size=(1, 1), padding=(0, 0), bias=False),
+        nn.Conv2d(in_channels=256, out_channels=512, kernel_size=(1, 1), padding=(0, 0), bias=False),
         nn.ReLU(),
-        nn.BatchNorm2d(256)
+        nn.BatchNorm2d(512)
     )
     self.gap = nn.Sequential(
         nn.AvgPool2d(kernel_size=5)
     )
     self.convblock9 = nn.Sequential(
-        nn.Conv2d(in_channels=256, out_channels=10, kernel_size=(1, 1), padding=(0, 0), bias=False),
+        nn.Conv2d(in_channels=512, out_channels=10, kernel_size=(1, 1), padding=(0, 0), bias=False),
     )
     
   def forward(self, x):
@@ -163,48 +164,67 @@ class Loader(object):
     summary(self.model, input_size=(3, 32, 32))
 
   def train(self, limit, learning_rate=0.01, momentum=0.9):
-    criterion = nn.CrossEntropyLoss()
+    self.train_losses = []
+    self.test_losses = []
+    self.train_acc = []
+    self.test_acc = []
     optimizer = optim.SGD(self.model.parameters(), lr=learning_rate, momentum=momentum)
 
-    for epoch in range(limit):
-        running_loss = 0.0
-        for i, data in enumerate(self.trainloader, 0):
-            # get the inputs
-            inputs, labels = data
-            inputs, labels = inputs.to(self.device), labels.to(self.device)
+    for in range(limit):
+        self.model.train()
+        pbar = tqdm(self.trainloader)
+        correct = 0
+        processed = 0
 
-            # zero the parameter gradients
-            optimizer.zero_grad()
+        for batch_idx, (data, labels) in enumerate(pbar):
+        data, labels = data.to(self.device), labels.to(self.device)
 
-            # forward + backward + optimize
-            self.outputs = self.model(inputs)
-            loss = criterion(self.outputs, labels)
-            loss.backward()
-            optimizer.step()
+        # Init
+        optimizer.zero_grad()
+        # In PyTorch, we need to set the gradients to zero before starting to do backpropragation because PyTorch accumulates the gradients on subsequent backward passes. 
+        # Because of this, when you start your training loop, ideally you should zero out the gradients so that you do the parameter update correctly.
 
-            # print statistics
-            running_loss += loss.item()
-            if i % 2000 == 1999:    # print every 2000 mini-batches
-                print('[%d, %5d] loss: %.3f' %
-                    (epoch + 1, i + 1, running_loss / 2000))
-                running_loss = 0.0
+        # Predict
+        y_pred = self.model(data)
 
-    print('Finished Training')
+        # Calculate loss
+        loss = F.nll_loss(y_pred, labels)
+        self.train_losses.append(loss)
+
+        # Backpropagation
+        loss.backward()
+        optimizer.step()
+
+        # Update pbar-tqdm
+        pred = y_pred.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
+        correct += pred.eq(labels.view_as(pred)).sum().item()
+        processed += len(data)
+
+        pbar.set_description(desc= f'Loss={loss.item()} Batch_id={batch_idx} Accuracy={100*correct/processed:0.2f}')
+        self.train_acc.append(100*correct/processed)
+        self.test(self)
+      
 
   def test(self):
-    correct = 0
-    total = 0
-    with torch.no_grad():
-        for data in self.testloader:
-            images, labels = data
-            images, labels = images.to(self.device), labels.to(self.device)
-            outputs = self.model(images)
-            _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
+      self.model.eval()
+      test_loss = 0
+      correct = 0
+      with torch.no_grad():
+          for data, labels in self.testloader:
+              data, labels = data.to(self.device), labels.to(self.device)
+              output = self.model(data)
+              test_loss += F.nll_loss(output, labels, reduction='sum').item()  # sum up batch loss
+              pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
+              correct += pred.eq(labels.view_as(pred)).sum().item()
 
-    print('Accuracy of the network on the 10000 test images: %d %%' % (
-        100 * correct / total))
+      self.test_loss /= len(self.testloader.dataset)
+      self.test_losses.append(test_loss)
+
+      print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'.format(
+          test_loss, correct, len(self.testloader.dataset),
+          100. * correct / len(self.testloader.dataset)))
+      
+      self.test_acc.append(100. * correct / len(self.testloader.dataset))
     
   def class_accuracy(self):
     class_correct = list(0. for i in range(10))
