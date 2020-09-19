@@ -12,6 +12,8 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 import numpy as np
 
+from .model import ResNet18
+
 class Loader(object):
   def __init__(self, data_mean, data_std_dev):
     super(Loader, self).__init__()
