@@ -28,7 +28,8 @@ class Net(nn.Module):
     self.convblock1 = nn.Sequential(
         nn.Conv2d(in_channels=3, out_channels=64, kernel_size=(3, 3), padding = (1,1), bias=False),
         nn.ReLU(),
-        nn.BatchNorm2d(64)
+        nn.BatchNorm2d(64),
+        nn.Dropout(0.01)
     )
 
     # Max Pooling 1
@@ -40,14 +41,16 @@ class Net(nn.Module):
     self.convblock2 = nn.Sequential(
         nn.Conv2d(in_channels=64, out_channels=128, kernel_size=(1, 1), padding = (1,1), bias=False),
         nn.ReLU(),
-        nn.BatchNorm2d(128)
+        nn.BatchNorm2d(128),
+        nn.Dropout(0.01)
     )
 
     # Convolution Block 3
     self.convblock3 = nn.Sequential(
         nn.Conv2d(in_channels=128, out_channels=256, kernel_size=(3, 3), padding = (2,2), bias=False, dilation=(2,2)),
         nn.ReLU(),
-        nn.BatchNorm2d(256)
+        nn.BatchNorm2d(256),
+        nn.Dropout(0.01)
     )
 
     # Max Pooling 2
@@ -79,7 +82,8 @@ class Net(nn.Module):
     self.convblock6 = nn.Sequential(
         nn.Conv2d(in_channels=256, out_channels=256, kernel_size=(1, 1), padding=(1,1), bias=False),
         nn.ReLU(),
-        nn.BatchNorm2d(256)
+        nn.BatchNorm2d(256),
+        nn.Dropout(0.01)
     )
 
     self.convblock7 = nn.Sequential(
@@ -92,7 +96,8 @@ class Net(nn.Module):
     self.convblock8 = nn.Sequential(
         nn.Conv2d(in_channels=256, out_channels=512, kernel_size=(1, 1), padding=(0, 0), bias=False),
         nn.ReLU(),
-        nn.BatchNorm2d(512)
+        nn.BatchNorm2d(512),
+        nn.Dropout(0.01)
     )
     self.gap = nn.Sequential(
         nn.AvgPool2d(kernel_size=5)
