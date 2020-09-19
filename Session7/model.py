@@ -170,11 +170,13 @@ class Loader(object):
     self.test_acc = []
     optimizer = optim.SGD(self.model.parameters(), lr=learning_rate, momentum=momentum)
 
-    for i in range(limit):
+    for epoch in range(limit):
         self.model.train()
         pbar = tqdm(self.trainloader)
         correct = 0
         processed = 0
+
+        print("EPOCH:", epoch)
 
         for batch_idx, (data, labels) in enumerate(pbar):
             data, labels = data.to(self.device), labels.to(self.device)
