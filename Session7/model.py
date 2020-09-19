@@ -170,39 +170,39 @@ class Loader(object):
     self.test_acc = []
     optimizer = optim.SGD(self.model.parameters(), lr=learning_rate, momentum=momentum)
 
-    for in range(limit):
+    for i in range(limit):
         self.model.train()
         pbar = tqdm(self.trainloader)
         correct = 0
         processed = 0
 
         for batch_idx, (data, labels) in enumerate(pbar):
-        data, labels = data.to(self.device), labels.to(self.device)
+            data, labels = data.to(self.device), labels.to(self.device)
 
-        # Init
-        optimizer.zero_grad()
-        # In PyTorch, we need to set the gradients to zero before starting to do backpropragation because PyTorch accumulates the gradients on subsequent backward passes. 
-        # Because of this, when you start your training loop, ideally you should zero out the gradients so that you do the parameter update correctly.
+            # Init
+            optimizer.zero_grad()
+            # In PyTorch, we need to set the gradients to zero before starting to do backpropragation because PyTorch accumulates the gradients on subsequent backward passes. 
+            # Because of this, when you start your training loop, ideally you should zero out the gradients so that you do the parameter update correctly.
 
-        # Predict
-        y_pred = self.model(data)
+            # Predict
+            y_pred = self.model(data)
 
-        # Calculate loss
-        loss = F.nll_loss(y_pred, labels)
-        self.train_losses.append(loss)
+            # Calculate loss
+            loss = F.nll_loss(y_pred, labels)
+            self.train_losses.append(loss)
 
-        # Backpropagation
-        loss.backward()
-        optimizer.step()
+            # Backpropagation
+            loss.backward()
+            optimizer.step()
 
-        # Update pbar-tqdm
-        pred = y_pred.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
-        correct += pred.eq(labels.view_as(pred)).sum().item()
-        processed += len(data)
+            # Update pbar-tqdm
+            pred = y_pred.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
+            correct += pred.eq(labels.view_as(pred)).sum().item()
+            processed += len(data)
 
-        pbar.set_description(desc= f'Loss={loss.item()} Batch_id={batch_idx} Accuracy={100*correct/processed:0.2f}')
-        self.train_acc.append(100*correct/processed)
-        self.test(self)
+            pbar.set_description(desc= f'Loss={loss.item()} Batch_id={batch_idx} Accuracy={100*correct/processed:0.2f}')
+            self.train_acc.append(100*correct/processed)
+            self.test(self)
       
 
   def test(self):
