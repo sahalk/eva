@@ -213,7 +213,7 @@ class Loader(object):
       correct = 0
       pbar = tqdm(self.testloader)
       with torch.no_grad():
-          for data, labels in enumerate(pbar):
+          for batch_idx, (data, labels) in enumerate(pbar):
               data, labels = data.to(self.device), labels.to(self.device)
               output = self.model(data)
               test_loss += F.nll_loss(output, labels, reduction='sum').item()  # sum up batch loss
