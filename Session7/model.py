@@ -217,7 +217,7 @@ class Loader(object):
               pred = output.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
               correct += pred.eq(labels.view_as(pred)).sum().item()
 
-      self.test_loss /= len(self.testloader.dataset)
+      test_loss /= len(self.testloader.dataset)
       self.test_losses.append(test_loss)
 
       print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.2f}%)\n'.format(
