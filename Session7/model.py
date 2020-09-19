@@ -202,7 +202,7 @@ class Loader(object):
 
             pbar.set_description(desc= f'Loss={loss.item()} Batch_id={batch_idx} Accuracy={100*correct/processed:0.2f}')
             self.train_acc.append(100*correct/processed)
-            self.test(self)
+            self.test()
       
 
   def test(self):
