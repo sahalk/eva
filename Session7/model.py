@@ -158,7 +158,7 @@ class Loader(object):
     # show images
     imshow(torchvision.utils.make_grid(images))
     # print labels
-    print(' '.join('%5s' % self.classes[labels[j]] for j in range(4)))
+    print(' '.join('%5s' % self.classes[labels[j]] for j in range(64)))
 
   def print_sum(self):
     summary(self.model, input_size=(3, 32, 32))
