@@ -11,7 +11,7 @@ class GradCam():
     self.target_layers = target_layers
     self.device = device
     self.name_layer_map =  dict(self.model.named_modules())
-    classes = ('plane', 'car', 'bird', 'cat',
+    self.classes = ('plane', 'car', 'bird', 'cat',
               'deer', 'dog', 'frog', 'horse', 'ship', 'truck')
   
   def get_overlays(self, required_class, one_hot_encoded_class=None):
@@ -21,8 +21,8 @@ class GradCam():
     one_hot_encoded_class = one_hot_encoded_class if one_hot_encoded_class else required_class
 
     # Get labels
-    required_label = classes.index(required_class)
-    one_hot_label = classes.index(one_hot_encoded_class)
+    required_label = self.classes.index(required_class)
+    one_hot_label = self.classes.index(one_hot_encoded_class)
 
     # get some random training images for the corresponding label
     dataiter = iter(self.test_loader)
