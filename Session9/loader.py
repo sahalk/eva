@@ -13,7 +13,7 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 import numpy as np
 
-from ..Session8.model import ResNet18
+from ..Session9.model import ResNet18
 
 class CIFAR10_dataset(datasets.CIFAR10):
     """
