@@ -83,9 +83,9 @@ class Net(nn.Module):
 
     # Convolution Block 8
     self.convblock8 = nn.Sequential(
-        nn.Conv2d(in_channels=256, out_channels=256, kernel_size=(1, 1), padding=(1,1), bias=False),
+        nn.Conv2d(in_channels=256, out_channels=512, kernel_size=(1, 1), padding=(1,1), bias=False),
         nn.ReLU(),
-        nn.BatchNorm2d(256)
+        nn.BatchNorm2d(512)
     )
 
     # GAP Layer
