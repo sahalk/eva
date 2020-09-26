@@ -17,7 +17,7 @@ class Net(nn.Module):
 
     # Convolution Block 1
     self.convblock1 = nn.Sequential(
-        nn.Conv2d(in_channels=32, out_channels=64, kernel_size=(1, 1), padding = (1,1), bias=False),
+        nn.Conv2d(in_channels=32, out_channels=64, kernel_size=(3, 3), padding = (1,1), bias=False),
         nn.ReLU(),
         nn.BatchNorm2d(64),
         nn.Dropout(dropout_value)
@@ -38,7 +38,7 @@ class Net(nn.Module):
 
     # Convolution Block 3
     self.convblock3 = nn.Sequential(
-        nn.Conv2d(in_channels=64, out_channels=128, kernel_size=(3, 3), padding = (1,1), bias=False),
+        nn.Conv2d(in_channels=64, out_channels=128, kernel_size=(1, 1), padding = (1,1), bias=False),
         nn.ReLU(),
         nn.BatchNorm2d(128),
         nn.Dropout(dropout_value)
@@ -75,21 +75,21 @@ class Net(nn.Module):
 
     # Convolution Block 7
     self.convblock7 = nn.Sequential(
-        nn.Conv2d(in_channels=128, out_channels=128, kernel_size=(1, 1), padding=(1,1), bias=False),
+        nn.Conv2d(in_channels=128, out_channels=128, kernel_size=(3, 3), padding=(1,1), bias=False),
         nn.ReLU(),
         nn.BatchNorm2d(128)
     )
 
     # Convolution Block 8
     self.convblock8 = nn.Sequential(
-        nn.Conv2d(in_channels=128, out_channels=256, kernel_size=(1, 1), padding=(1,1), bias=False),
+        nn.Conv2d(in_channels=128, out_channels=256, kernel_size=(3, 3), padding=(1,1), bias=False),
         nn.ReLU(),
         nn.BatchNorm2d(256)
     )
 
     # GAP Layer
     self.gap = nn.Sequential(
-        nn.AvgPool2d(kernel_size=5)
+        nn.AvgPool2d(kernel_size=7)
     )
 
     # Output Layer
