@@ -25,7 +25,7 @@ class Net(nn.Module):
 
     # Convolution Block 2
     self.convblock2 = nn.Sequential(
-        nn.Conv2d(in_channels=128, out_channels=256, kernel_size=(3, 3), padding = (1,1), bias=False,
+        nn.Conv2d(in_channels=128, out_channels=256, kernel_size=(3, 3), padding = (1,1), bias=False),
         nn.ReLU(),
         nn.BatchNorm2d(256),
         nn.Dropout(dropout_value)
