@@ -4,6 +4,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.optim.lr_scheduler import StepLR
 import torchvision
+from torchvision import datasets
 import torchvision.transforms as transforms
 
 from torchsummary import summary
