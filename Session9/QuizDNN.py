@@ -11,7 +11,7 @@ class Net(nn.Module):
     self.input = nn.Sequential(
         nn.Conv2d(in_channels=3, out_channels=32, kernel_size=(3, 3), padding = (1,1), bias=False),
         nn.ReLU(),
-        nn.BatchNorm2d(64),
+        nn.BatchNorm2d(32),
         nn.Dropout(dropout_value)
     )
 
