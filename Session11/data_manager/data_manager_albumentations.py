@@ -2,7 +2,7 @@ import torchvision
 from torchvision import datasets
 
 import torch
-from albumentations import Compose, Rotate, HorizontalFlip, Normalize, RandomCrop, Cutout, PadIfNeeded, Lambda
+from albumentations import *
 from albumentations.pytorch import ToTensor
 
 class CIFAR10_dataset(datasets.CIFAR10):
